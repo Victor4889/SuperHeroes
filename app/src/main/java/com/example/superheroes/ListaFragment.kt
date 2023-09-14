@@ -45,13 +45,11 @@ class ListaFragment : Fragment(), SearchView.OnQueryTextListener, HeroesAdapter.
         heroesImegenes.clear()
         heroesIds.clear()
 
-        buscarImagen("1")
-        buscarImagen("100")
-        buscarImagen("200")
-        buscarImagen("300")
-        buscarImagen("400")
-        buscarImagen("500")
-
+        var idHeroe:Int=1
+        while (idHeroe<=2) {
+            buscarImagen(idHeroe.toString())
+            idHeroe++
+        }
 
         return root
     }
