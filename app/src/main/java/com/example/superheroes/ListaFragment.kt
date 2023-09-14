@@ -1,12 +1,14 @@
 package com.example.superheroes
 
 import android.os.Bundle
+import android.os.Handler
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +20,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class ListaFragment : Fragment(), SearchView.OnQueryTextListener, HeroesAdapter.OnItemClickListener {
+class ListaFragment : Fragment(), HeroesAdapter.OnItemClickListener {
 
     private lateinit var binding:ActivityMainBinding
     private lateinit var adapter:HeroesAdapter
@@ -26,7 +28,13 @@ class ListaFragment : Fragment(), SearchView.OnQueryTextListener, HeroesAdapter.
     private val heroesNombres= mutableListOf<String>()
     private val heroesIds= mutableListOf<String>()
     private lateinit var lista:RecyclerView
-    private lateinit var buscador:SearchView
+
+    private lateinit var nested:NestedScrollView
+
+    var contador=0
+    var aux=0
+    var min=1
+    var max=10
 
 
     override fun onCreateView(
@@ -36,24 +44,37 @@ class ListaFragment : Fragment(), SearchView.OnQueryTextListener, HeroesAdapter.
 
         val root = inflater.inflate(R.layout.fragment_lista, container, false)
         lista= root.findViewById<RecyclerView>(R.id.rvLista)
-        buscador= root.findViewById<SearchView>(R.id.svBuscar)
+        nested=root.findViewById(R.id.nstScroll)
 
-        buscador.setOnQueryTextListener(this)
         cargarListaImagenes()
 
         heroesNombres.clear()
         heroesImegenes.clear()
         heroesIds.clear()
 
-        var idHeroe:Int=1
-        while (idHeroe<=2) {
-            buscarImagen(idHeroe.toString())
-            idHeroe++
-        }
+        llenarLista()
+        nested.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener {
+            v, scrollX, scrollY,oldScrollX,oldScrollY ->
+
+            if(scrollY==v.getChildAt(0).measuredHeight - v.measuredHeight){
+                min += 10
+                max += 10
+                llenarLista()
+            }
+        })
+
 
         return root
     }
 
+    fun llenarLista(){
+        for(i in min..max){
+            Handler().postDelayed(Runnable {
+                buscarImagen(i.toString())
+
+            },100)
+        }
+    }
 
 
     private fun cargarListaImagenes(){
@@ -111,24 +132,12 @@ class ListaFragment : Fragment(), SearchView.OnQueryTextListener, HeroesAdapter.
     }
 
     private fun showError() {
-        Toast.makeText(activity, "Ocurrio un error al consumir el api", Toast.LENGTH_SHORT)
-    }
-
-    override fun onQueryTextSubmit(query: String?): Boolean {
-        if(!query.isNullOrEmpty()){
-            buscarImagen(query.toLowerCase())
-        }
-
-        return true
-    }
-
-    override fun onQueryTextChange(newText: String?): Boolean {
-        return true
+        Toast.makeText(activity, "Ocurrio un error al consumir el api", Toast.LENGTH_SHORT).show()
     }
 
     override fun onItemClick(position: Int) {
         val clickedItem=heroesIds[position]
-        Toast.makeText(activity,"Item $clickedItem click",Toast.LENGTH_SHORT).show()
+        //Toast.makeText(activity,"Item $clickedItem click",Toast.LENGTH_SHORT).show()
         findNavController().navigate(ListaFragmentDirections.actionListaFragmentToDetalleFragment(idSH=clickedItem
 
         ))
